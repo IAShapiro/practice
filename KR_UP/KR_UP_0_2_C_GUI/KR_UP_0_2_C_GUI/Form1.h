@@ -1,71 +1,11 @@
 #pragma once
-#include <msclr\marshal_cppstd.h>
 #include <iostream>
-#include <vector>
 #include <fstream>
-#include <string>
 #include <map>
+#include <string>
+#include <msclr\marshal_cppstd.h>
 
 namespace CppCLR_WinformsProjekt {
-
-	std::vector<int> decomposition(unsigned int x)
-	{
-		std::vector<int> dividers;
-
-		if (x == 1)
-		{
-			dividers.push_back(x);
-			return dividers;
-		}
-
-		for (auto i = 2; i <= sqrt(x); i++)//sqrt(x) instead x - optimization
-		{
-			while (x % i == 0)
-			{
-				dividers.push_back(i);
-				x /= i;
-			}
-		}
-
-		if (x != 1)//for prime number
-		{
-			dividers.push_back(x);
-		}
-
-		return dividers;
-	}
-
-	std::string line_of_div(std::vector<int> A, unsigned int numb)
-	{
-		std::string line = std::to_string(numb) + " = ";
-
-		int degree = 1;
-
-		for (auto i = 1; i < static_cast<int>(A.size()); i++)
-		{
-			if (A[i] == A[i - 1])
-			{
-				degree++;
-			}
-			else
-			{
-				line += std::to_string(A[i - 1]);
-				if (degree != 1)
-				{
-					line += "^" + std::to_string(degree);
-				}
-				line += " * ";
-				degree = 1;
-			}
-		}
-
-		line += std::to_string(A[A.size() - 1]);
-		if (degree != 1)
-		{
-			line += "^" + std::to_string(degree);
-		}
-		return line;
-	}
 
 	using namespace System;
 	using namespace System::ComponentModel;
@@ -124,17 +64,17 @@ namespace CppCLR_WinformsProjekt {
 			// 
 			// textBox1
 			// 
-			this->textBox1->Location = System::Drawing::Point(133, 29);
+			this->textBox1->Location = System::Drawing::Point(134, 59);
 			this->textBox1->Name = L"textBox1";
-			this->textBox1->Size = System::Drawing::Size(325, 20);
+			this->textBox1->Size = System::Drawing::Size(366, 20);
 			this->textBox1->TabIndex = 0;
 			// 
 			// button1
 			// 
 			this->button1->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 12.25F, System::Drawing::FontStyle::Bold));
-			this->button1->Location = System::Drawing::Point(203, 56);
+			this->button1->Location = System::Drawing::Point(188, 95);
 			this->button1->Name = L"button1";
-			this->button1->Size = System::Drawing::Size(178, 40);
+			this->button1->Size = System::Drawing::Size(252, 44);
 			this->button1->TabIndex = 1;
 			this->button1->Text = L"Прочесть файл";
 			this->button1->UseVisualStyleBackColor = true;
@@ -143,16 +83,16 @@ namespace CppCLR_WinformsProjekt {
 			// listBox1
 			// 
 			this->listBox1->FormattingEnabled = true;
-			this->listBox1->Location = System::Drawing::Point(134, 118);
+			this->listBox1->Location = System::Drawing::Point(134, 167);
 			this->listBox1->Name = L"listBox1";
-			this->listBox1->Size = System::Drawing::Size(323, 264);
+			this->listBox1->Size = System::Drawing::Size(365, 199);
 			this->listBox1->TabIndex = 2;
 			// 
 			// Form1
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
-			this->ClientSize = System::Drawing::Size(600, 435);
+			this->ClientSize = System::Drawing::Size(633, 418);
 			this->Controls->Add(this->listBox1);
 			this->Controls->Add(this->button1);
 			this->Controls->Add(this->textBox1);
@@ -172,18 +112,31 @@ namespace CppCLR_WinformsProjekt {
 			std::ifstream in(context.marshal_as<std::string>(Line));
 			if (in.is_open())
 			{
-				std::map<int, std::string> h2;
-
+				std::multimap<int, std::string> h2;
 				std::string tmp;
 				while (getline(in, tmp))
 				{
-					char * next = nullptr, *p = strtok_s(&tmp[0], "\n EOF", &next);
-
-					while (p != nullptr)
+					if (!tmp.empty())
 					{
-						h2[atoi(p)] = line_of_div(decomposition(atoi(p)), atoi(p));
-
-						p = strtok_s(nullptr, "\n EOF", &next);
+						auto weight = 0;
+						for (auto& it : tmp)
+						{
+							if (((it <= 'Z') && (it >= 'A')) || ((it <= 'z') && (it >= 'a')))
+							{
+								weight += (tolower(it) - 'a' + 1);
+							}
+							else if (it <= '9' && it >= '0')
+							{
+								weight += it - '0';
+							}
+							else
+							{
+								weight++;
+							}
+						}
+						tmp.insert(0, "\"");
+						tmp += "\" = " + std::to_string(weight);
+						h2.insert(std::pair<int, std::string>(-weight, tmp));
 					}
 				}
 
@@ -195,7 +148,6 @@ namespace CppCLR_WinformsProjekt {
 				in.close();
 			}
 		}
-		
 	}
 	};
 }
